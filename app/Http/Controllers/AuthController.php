@@ -2,21 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login']]);
+        $this->middleware('auth:api', ['except' => ['login','register']]);
     }
 
     public function login()
     {
         $credentials = request(['email', 'password']);
 
-        if (! $token = auth()->attempt($credentials)) {
+        if (! $token = auth()->claims(['nam' => 'Onuvutihin'])->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -47,5 +50,19 @@ class AuthController extends Controller
             'token_type' => 'bearer',
             'expires_in' => auth()->factory()->getTTL() * 60
         ]);
+    }
+
+    public function payload(){
+        return auth()->payload();
+    }
+
+    public function register(Request $request){
+        $data=array();
+        $data['name']       = $request->name;
+        $data['email']      = $request->email;
+        $data['password']   = Hash::make($request->password);
+
+        User::create($data);
+        return $this->login($request);
     }
 }
