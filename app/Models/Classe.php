@@ -10,4 +10,8 @@ class Classe extends Model
     use HasFactory;
 
     protected $fillable = ['class_name'];
+
+    public function subject(){
+        return $this->hasMany(Subject::class);
+    }
 }
